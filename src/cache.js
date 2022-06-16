@@ -27,12 +27,23 @@ const handleCache = async ({ ttl, doc, key, cache, isRedis = false }) => {
   }
 }
 
+const isValidObjectId = id => {
+  const hex = /[0-9A-Fa-f]{6}/g
+  return (
+    id !== null &&
+    typeof id !== 'undefined' &&
+    (hex.test(idToString(id)) || hex.test(stringToId(id)))
+  )
+}
+
 const remapDocs = (docs, ids) => {
   const idMap = {}
-  docs.forEach(doc => {
-    idMap[idToString(doc._id)] = doc // eslint-disable-line no-underscore-dangle
-  })
-  return ids.map(id => idMap[idToString(id)])
+  docs
+    .filter(v => !!v && v._id) // eslint-disable-line no-underscore-dangle
+    .forEach(doc => {
+      idMap[idToString(doc._id)] = doc // eslint-disable-line no-underscore-dangle
+    })
+  return ids.map(id => idMap[idToString(id)]).filter(v => !!v && v._id) // eslint-disable-line no-underscore-dangle
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -47,11 +58,11 @@ export const createCachingMethods = ({
   const loader = new DataLoader(ids =>
     isMongoose
       ? collection
-          .find({ _id: { $in: ids.map(stringToId) } })
+          .find({ _id: { $in: ids.filter(v => !!v).map(stringToId) } })
           .lean()
           .then(docs => remapDocs(docs, ids))
       : collection
-          .find({ _id: { $in: ids.map(stringToId) } })
+          .find({ _id: { $in: ids.filter(v => !!v).map(stringToId) } })
           .toArray()
           .then(docs => remapDocs(docs, ids))
   )
@@ -91,8 +102,7 @@ export const createCachingMethods = ({
       if (cacheDoc) {
         return isRedis ? JSON.parse(cacheDoc) : cacheDoc
       }
-
-      const doc = await loader.load(idToString(id))
+      const doc = isValidObjectId(id) ? await loader.load(idToString(id)) : null
       await handleCache({
         ttl,
         doc,
@@ -105,8 +115,13 @@ export const createCachingMethods = ({
     },
 
     // eslint-disable-next-line no-param-reassign
-    loadManyByIds: (ids, { ttl } = {}) =>
-      Promise.all(ids.map(id => methods.loadOneById(id, { ttl }))),
+    loadManyByIds: (ids, { ttl } = {}) => {
+      return Promise.all(
+        ids
+          .filter(id => isValidObjectId(id))
+          .map(id => methods.loadOneById(id, { ttl }))
+      )
+    },
 
     // eslint-disable-next-line no-param-reassign
     loadManyByQuery: async (query, { ttl } = {}) => {

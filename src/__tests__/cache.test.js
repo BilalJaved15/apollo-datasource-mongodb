@@ -20,6 +20,10 @@ const docs = {
   id3: {
     _id: ObjectId(),
     createdAt: oneWeekAgo
+  },
+  id4: {
+    _id: null,
+    createdAt: new Date()
   }
 }
 
@@ -73,11 +77,22 @@ describe('createCachingMethods', () => {
     expect(collection.find.mock.calls.length).toBe(1)
   })
 
+  it('finds no null', async () => {
+    const doc = await api.loadOneById(docs.id4._id)
+    expect(doc).toBe(null)
+    expect(collection.find.mock.calls.length).toBe(0)
+  })
+
   it('finds two with batching', async () => {
     const foundDocs = await api.loadManyByIds([docs.id2._id, docs.id3._id])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
-
+    expect(collection.find.mock.calls.length).toBe(1)
+  })
+  it('finds two with batching and skips null', async () => {
+    const foundDocs = await api.loadManyByIds([docs.id4._id, docs.id2._id, docs.id4._id, docs.id3._id, docs.id4._id])
+    expect(foundDocs[0]).toBe(docs.id2)
+    expect(foundDocs[1]).toBe(docs.id3)
     expect(collection.find.mock.calls.length).toBe(1)
   })
 
@@ -126,6 +141,15 @@ describe('createCachingMethods', () => {
     await api.loadManyByQuery(query)
     expect(collection.find.mock.calls.length).toBe(2) // it takes count both [ [ { _id: [Object] } ], [ { '$or': [Array] } ] ]
   })
+
+  it(`does not cache null ids`, async () => {
+    await api.loadOneById(docs.id4._id, { ttl: 1 })
+    let value = await cache.get(cacheKey(docs.id4._id))
+    expect(value).toBe(null)
+
+    await api.loadOneById(docs.id4._id)
+    expect(collection.find.mock.calls.length).toBe(0)})
+
 
   it(`caches with ttl`, async () => {
     await api.loadOneById(docs.id1._id, { ttl: 1 })
