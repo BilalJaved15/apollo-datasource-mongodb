@@ -43,7 +43,7 @@ const remapDocs = (docs, ids) => {
     .forEach(doc => {
       idMap[idToString(doc._id)] = doc // eslint-disable-line no-underscore-dangle
     })
-  return ids.map(id => idMap[idToString(id)]).filter(v => !!v && v._id) // eslint-disable-line no-underscore-dangle
+  return ids.map(id => idMap[idToString(id)])
 }
 
 // eslint-disable-next-line import/prefer-default-export

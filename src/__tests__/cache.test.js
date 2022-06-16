@@ -49,7 +49,7 @@ describe('createCachingMethods', () => {
             } else {
               const { _id: { $in: ids } } = args
               setTimeout(() => resolve(ids.map((id) => {
-                return Object.values(docs).find(doc => doc._id.toString() === id.toString())
+                return Object.values(docs).find(doc => doc && doc._id && doc._id.toString() === id.toString())
               })
             ), 0)
             }
@@ -77,8 +77,20 @@ describe('createCachingMethods', () => {
     expect(collection.find.mock.calls.length).toBe(1)
   })
 
-  it('finds no null', async () => {
-    const doc = await api.loadOneById(docs.id4._id)
+  it('finds undefined for non existant _id in db, returns undefined', async () => {
+    const doc = await api.loadOneById('aaaa0000bbbb0000cccc0001')
+    expect(doc).toBe(undefined)
+    expect(collection.find.mock.calls.length).toBe(1)
+  })
+
+  it('finds nothing for null, returns null', async () => {
+    const doc = await api.loadOneById(docs.id4._id) 
+    expect(doc).toBe(null)
+    expect(collection.find.mock.calls.length).toBe(0)
+  })
+
+  it('finds nothing for undefined id', async () => {
+    const doc = await api.loadOneById(undefined) 
     expect(doc).toBe(null)
     expect(collection.find.mock.calls.length).toBe(0)
   })
@@ -89,8 +101,8 @@ describe('createCachingMethods', () => {
     expect(foundDocs[1]).toBe(docs.id3)
     expect(collection.find.mock.calls.length).toBe(1)
   })
-  it('finds two with batching and skips null', async () => {
-    const foundDocs = await api.loadManyByIds([docs.id4._id, docs.id2._id, docs.id4._id, docs.id3._id, docs.id4._id])
+  it('finds two with batching and skips null and/or undefined', async () => {
+    const foundDocs = await api.loadManyByIds([undefined, docs.id2._id, docs.id4._id, docs.id3._id, docs.id4._id])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
     expect(collection.find.mock.calls.length).toBe(1)
