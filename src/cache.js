@@ -32,6 +32,7 @@ const isValidObjectId = id => {
   return (
     id !== null &&
     typeof id !== 'undefined' &&
+    hex.test(id) &&
     (hex.test(idToString(id)) || hex.test(stringToId(id)))
   )
 }

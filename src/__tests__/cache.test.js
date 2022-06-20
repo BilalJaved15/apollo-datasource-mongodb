@@ -24,6 +24,10 @@ const docs = {
   id4: {
     _id: null,
     createdAt: new Date()
+  },
+  id5: {
+    _id: '1xxs',
+    createdAt: new Date()
   }
 }
 
@@ -99,13 +103,27 @@ describe('createCachingMethods', () => {
     const foundDocs = await api.loadManyByIds([docs.id2._id, docs.id3._id])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
+    expect(foundDocs.length).toBe(2)
     expect(collection.find.mock.calls.length).toBe(1)
   })
   it('finds two with batching and skips null and/or undefined', async () => {
     const foundDocs = await api.loadManyByIds([undefined, docs.id2._id, docs.id4._id, docs.id3._id, docs.id4._id])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
+    expect(foundDocs.length).toBe(2)
     expect(collection.find.mock.calls.length).toBe(1)
+  })
+  it('finds two with batching and skips null and/or undefined && no valid hex strings', async () => {
+    const foundDocs = await api.loadManyByIds([docs.id5._id, undefined, docs.id2._id, docs.id5._id, docs.id4._id, docs.id5._id, docs.id3._id, docs.id4._id, docs.id5._id])
+    expect(foundDocs[0]).toBe(docs.id2)
+    expect(foundDocs[1]).toBe(docs.id3)
+    expect(foundDocs.length).toBe(2)
+    expect(collection.find.mock.calls.length).toBe(1)
+  })
+  it('Should not throw "Argument passed in must be a single String of 12 bytes or a string of 24 hex characters" and return null', async () => {
+    const doc = await api.loadOneById(docs.id5._id) 
+    expect(doc).toBe(null)
+    expect(collection.find.mock.calls.length).toBe(0)
   })
 
   it('finds two with queries batching', async () => {
