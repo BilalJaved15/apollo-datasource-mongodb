@@ -1,6 +1,6 @@
 {
   "name": "apollo-datasource-mongo",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Apollo data source for MongoDB Client and Mongoose",
   "main": "dist/index.js",
   "files": [
@@ -25,11 +25,9 @@
     "node": ">=8"
   },
   "dependencies": {
-    "apollo-datasource": "^0.7.2",
-    "apollo-server-caching": "^0.5.2",
-    "apollo-server-errors": "^2.4.2",
+    "@apollo/utils.keyvaluecache": "^4.0.0",
     "dataloader": "^2.0.0",
-    "mongodb": "^3.5.9",
+    "mongodb": "4.17.0",
     "sift": "^13.5.0"
   },
   "devDependencies": {
