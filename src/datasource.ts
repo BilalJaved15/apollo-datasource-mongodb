@@ -16,10 +16,22 @@ interface MongoDataSourceOptions {
   config: MongoDataSourceConfig
 }
 
-class MongoDataSource {
-  collectionName!: string;
+const COLLECTION_NAME = Symbol('collectionName')
 
-  [key: string]: string | (Model<any> & CachingMethods)
+class MongoDataSource {
+  [COLLECTION_NAME]!: string;
+
+  [key: string]: Model<any> & CachingMethods
+
+  // @ts-ignore
+  get collectionName(): string {
+    return this[COLLECTION_NAME]
+  }
+
+  // @ts-ignore
+  set collectionName(name: string) {
+    this[COLLECTION_NAME] = name
+  }
 
   constructor(options: MongoDataSourceOptions) {
     const { collection, config } = options
@@ -46,19 +58,19 @@ class MongoDataSource {
       )
     }
 
-    this.collectionName = collectionName
-    this[this.collectionName] = mongoCollection
+    this[COLLECTION_NAME] = collectionName
+    this[collectionName] = mongoCollection as any
 
     const cache = config.cache || new InMemoryLRUCache()
     const { debug, allowFlushingCollectionCache } = config
 
     const methods = createCachingMethods({
-      collection: this[this.collectionName],
+      collection: mongoCollection,
       cache,
       debug,
       allowFlushingCollectionCache,
     })
-    Object.assign(this[this.collectionName], methods)
+    Object.assign(mongoCollection, methods)
   }
 }
 
