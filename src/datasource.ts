@@ -23,7 +23,7 @@ class MongoDataSource {
 
   [key: string]: Model<any> & CachingMethods
 
-  // @ts-expect-error
+  // @ts-expect-error - Mongoose Model
   get collectionName(): string {
     return this[COLLECTION_NAME]
   }
