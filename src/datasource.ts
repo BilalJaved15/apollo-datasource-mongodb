@@ -23,12 +23,11 @@ class MongoDataSource {
 
   [key: string]: Model<any> & CachingMethods
 
-  // @ts-ignore
+  // @ts-expect-error
   get collectionName(): string {
     return this[COLLECTION_NAME]
   }
 
-  // @ts-ignore
   set collectionName(name: string) {
     this[COLLECTION_NAME] = name
   }
