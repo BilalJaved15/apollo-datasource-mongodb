@@ -1,3 +1,12 @@
+# 0.3.0 (2026-05-13)
+
+
+### Features
+
+* typescript ([c4fd1ff](https://github.com/BilalJaved15/apollo-datasource-mongodb/commit/c4fd1ffbb86eeaf530057d6dffa806ff0c1d6914))
+
+
+
 ## [0.1.11](https://github.com/ecerroni/apollo-datasource-mongodb/compare/v0.1.10...v0.1.11) (2022-06-20)
 
 
