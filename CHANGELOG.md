@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/BilalJaved15/apollo-datasource-mongodb/compare/v0.3.0...v0.3.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* some more types ([ebadaca](https://github.com/BilalJaved15/apollo-datasource-mongodb/commit/ebadaca494c603eff8e3d6fdbd24f2a0b165ed0f))
+
+
+
 # 0.3.0 (2026-05-13)
 
 
