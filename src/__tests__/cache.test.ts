@@ -1,4 +1,4 @@
-import { InMemoryLRUCache } from 'apollo-server-caching'
+import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { ObjectId } from 'mongodb'
 import sift from 'sift'
 import wait from 'waait'
@@ -6,19 +6,23 @@ import wait from 'waait'
 import { createCachingMethods } from '../cache'
 
 const now = new Date()
-const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+const oneWeekAgo = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate() - 7
+)
 
-const docs = {
+const docs: Record<string, any> = {
   id1: {
     _id: 'aaaa0000bbbb0000cccc0000',
     createdAt: now
   },
   id2: {
-    _id: ObjectId(),
+    _id: new ObjectId(),
     createdAt: oneWeekAgo
   },
   id3: {
-    _id: ObjectId(),
+    _id: new ObjectId(),
     createdAt: oneWeekAgo
   },
   id4: {
@@ -32,30 +36,55 @@ const docs = {
 }
 
 const collectionName = 'test'
-const cacheKey = id => 'db:mongo:' + collectionName + ':' + id
+const cacheKey = (id: any) => 'db:mongo:' + collectionName + ':' + id
 
 describe('createCachingMethods', () => {
-  let collection
-  let cache
-  let allowFlushingCollectionCache
-  let api
+  let collection: any
+  let cache: any
+  let allowFlushingCollectionCache: boolean
+  let api: any
 
   beforeEach(() => {
     collection = {
       collectionName,
-      find: jest.fn((args) => ({
+      find: jest.fn((args: any) => ({
         toArray: () =>
           new Promise(resolve => {
             if (args.$or) {
               const { $or: queries } = args
-              const siftDocs = Object.keys(docs).reduce((a, k) => [...a, docs[k]], [])
-              setTimeout(() => resolve(queries.reduce((arr, query) => [...arr, ...siftDocs.filter(sift(query))], [])), 0)
+              const siftDocs = Object.keys(docs).reduce(
+                (a: any[], k) => [...a, docs[k]],
+                [] as any[]
+              )
+              setTimeout(
+                () =>
+                  resolve(
+                    queries.reduce(
+                      (arr: any[], query: any) => [
+                        ...arr,
+                        ...siftDocs.filter(sift(query))
+                      ],
+                      []
+                    )
+                  ),
+                0
+              )
             } else {
               const { _id: { $in: ids } } = args
-              setTimeout(() => resolve(ids.map((id) => {
-                return Object.values(docs).find(doc => doc && doc._id && doc._id.toString() === id.toString())
-              })
-            ), 0)
+              setTimeout(
+                () =>
+                  resolve(
+                    ids.map((id: any) => {
+                      return Object.values(docs).find(
+                        (doc: any) =>
+                          doc &&
+                          doc._id &&
+                          doc._id.toString() === id.toString()
+                      )
+                    })
+                  ),
+                0
+              )
             }
           })
       }))
@@ -65,7 +94,11 @@ describe('createCachingMethods', () => {
 
     allowFlushingCollectionCache = true
 
-    api = createCachingMethods({ collection, cache, allowFlushingCollectionCache })
+    api = createCachingMethods({
+      collection,
+      cache,
+      allowFlushingCollectionCache
+    })
   })
 
   it('adds the right methods', () => {
@@ -88,13 +121,13 @@ describe('createCachingMethods', () => {
   })
 
   it('finds nothing for null, returns null', async () => {
-    const doc = await api.loadOneById(docs.id4._id) 
+    const doc = await api.loadOneById(docs.id4._id)
     expect(doc).toBe(null)
     expect(collection.find.mock.calls.length).toBe(0)
   })
 
   it('finds nothing for undefined id', async () => {
-    const doc = await api.loadOneById(undefined) 
+    const doc = await api.loadOneById(undefined)
     expect(doc).toBe(null)
     expect(collection.find.mock.calls.length).toBe(0)
   })
@@ -106,22 +139,41 @@ describe('createCachingMethods', () => {
     expect(foundDocs.length).toBe(2)
     expect(collection.find.mock.calls.length).toBe(1)
   })
+
   it('finds two with batching and skips null and/or undefined', async () => {
-    const foundDocs = await api.loadManyByIds([undefined, docs.id2._id, docs.id4._id, docs.id3._id, docs.id4._id])
+    const foundDocs = await api.loadManyByIds([
+      undefined,
+      docs.id2._id,
+      docs.id4._id,
+      docs.id3._id,
+      docs.id4._id
+    ])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
     expect(foundDocs.length).toBe(2)
     expect(collection.find.mock.calls.length).toBe(1)
   })
+
   it('finds two with batching and skips null and/or undefined && no valid hex strings', async () => {
-    const foundDocs = await api.loadManyByIds([docs.id5._id, undefined, docs.id2._id, docs.id5._id, docs.id4._id, docs.id5._id, docs.id3._id, docs.id4._id, docs.id5._id])
+    const foundDocs = await api.loadManyByIds([
+      docs.id5._id,
+      undefined,
+      docs.id2._id,
+      docs.id5._id,
+      docs.id4._id,
+      docs.id5._id,
+      docs.id3._id,
+      docs.id4._id,
+      docs.id5._id
+    ])
     expect(foundDocs[0]).toBe(docs.id2)
     expect(foundDocs[1]).toBe(docs.id3)
     expect(foundDocs.length).toBe(2)
     expect(collection.find.mock.calls.length).toBe(1)
   })
+
   it('Should not throw "Argument passed in must be a single String of 12 bytes or a string of 24 hex characters" and return null', async () => {
-    const doc = await api.loadOneById(docs.id5._id) 
+    const doc = await api.loadOneById(docs.id5._id)
     expect(doc).toBe(null)
     expect(collection.find.mock.calls.length).toBe(0)
   })
@@ -178,8 +230,8 @@ describe('createCachingMethods', () => {
     expect(value).toBe(null)
 
     await api.loadOneById(docs.id4._id)
-    expect(collection.find.mock.calls.length).toBe(0)})
-
+    expect(collection.find.mock.calls.length).toBe(0)
+  })
 
   it(`caches with ttl`, async () => {
     await api.loadOneById(docs.id1._id, { ttl: 1 })
@@ -223,6 +275,7 @@ describe('createCachingMethods', () => {
     valueAfter = await cache.get(cacheKey(JSON.stringify(query)))
     expect(valueAfter).toBeUndefined()
   })
+
   it('has collection cache flushing disabled by default', async () => {
     api = createCachingMethods({ collection, cache })
     await api.loadOneById(docs.id1._id, { ttl: 1 })
@@ -238,8 +291,8 @@ describe('createCachingMethods', () => {
 
     const flush = await api.flushCollectionCache()
     expect(flush).toBeNull()
-
   })
+
   it('deletes from DataLoader cache', async () => {
     for (const id of [docs.id1._id, docs.id2._id]) {
       await api.loadOneById(id)
