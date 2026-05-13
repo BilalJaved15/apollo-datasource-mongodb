@@ -1,3 +1,14 @@
+## [0.3.2](https://github.com/BilalJaved15/apollo-datasource-mongodb/compare/v0.3.1...v0.3.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* explanation ([1ea3d55](https://github.com/BilalJaved15/apollo-datasource-mongodb/commit/1ea3d55bd4e96a71a73828f71789abe4f92cb768))
+* more types ([7d75f1a](https://github.com/BilalJaved15/apollo-datasource-mongodb/commit/7d75f1a19c0d95c6582478f2fe3910da44574537))
+* type errors ([fb304c3](https://github.com/BilalJaved15/apollo-datasource-mongodb/commit/fb304c3f9b84c8126f4cbc45cb88955ace9f76c3))
+
+
+
 ## [0.3.1](https://github.com/BilalJaved15/apollo-datasource-mongodb/compare/v0.3.0...v0.3.1) (2026-05-13)
 
 
