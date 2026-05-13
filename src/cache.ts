@@ -21,7 +21,7 @@ interface CreateCachingMethodsOptions {
   debug?: boolean
 }
 
-interface CachingMethods {
+export interface CachingMethods {
   loadOneById: (id: any, options?: CacheOptions) => Promise<any>
   loadManyByIds: (ids: any[], options?: CacheOptions) => Promise<any[]>
   loadManyByQuery: (query: any, options?: CacheOptions) => Promise<any[]>

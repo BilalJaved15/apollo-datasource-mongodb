@@ -3,6 +3,7 @@ import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import type { Model } from 'mongoose'
 
 import { createCachingMethods } from './cache'
+import type { CachingMethods } from './cache'
 
 interface MongoDataSourceConfig {
   cache?: any
@@ -16,9 +17,9 @@ interface MongoDataSourceOptions {
 }
 
 class MongoDataSource {
-  protected collectionName: string;
+  collectionName!: string;
 
-  [key: string]: any
+  [key: string]: string | (Model<any> & CachingMethods)
 
   constructor(options: MongoDataSourceOptions) {
     const { collection, config } = options
